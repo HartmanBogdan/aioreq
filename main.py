@@ -17,7 +17,7 @@ import config
 config = configparser.ConfigParser()
 config.read('configfile.ini')"""
 
-API_TOKEN = '5518084108:AAGNt_MEkbPtkvL8GJ_4c1RRgF7DGuVyAE8'
+API_TOKEN = config.API_TOKEN
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
