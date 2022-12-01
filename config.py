@@ -59,7 +59,6 @@ nacp_sites_ssl = [  # СПИСОК САЙТІВ, В ЯКИХ ПОТРІБНО П
     'https://nazk.gov.ua/uk/',
     'https://jira.nazk.gov.ua/',
     'https://cloud.nazk.gov.ua',
-    'https://nacpworkspace.slack.com/',
     'https://portal.nazk.gov.ua/',
     'https://corruptinfo.nazk.gov.ua/'
 ]
