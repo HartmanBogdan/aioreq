@@ -185,6 +185,7 @@ async def up_nacp(message):
                 try:
                     async with aiohttp.ClientSession() as session:
                         try:
+                            #TIMEOUT - 6 SEС
                             async with session.get(url=key, timeout=6) as response:
                                 print(str(response.status) + " " + hostname)
                                 if response.status != 200 and response.status != 401:
