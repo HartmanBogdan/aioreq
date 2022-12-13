@@ -109,8 +109,6 @@ async def set_time_up(message):
                                       ", значення може бути від 0 до 1440 хв(доба)", sec_par=" функція set_time_up")
 
 
-
-
 @dp.message_handler(commands=['set_time_ssl'], content_types=['text'])
 async def set_time_ssl(message):
     print("before set_time")
@@ -362,6 +360,21 @@ async def help(message):
                            "/stop_up_nacp - зупинити перевірку доступності сайтів.\n\n"
                            )
     await logger_writer(first_par="help повідомлення в чат", sec_par=" функція help")
+
+@dp.message_handler(commands=["total_down_time"])
+async def total_down_time(message):
+    out = "Загальний час відсутності ресурсів(від: " + total_time_down_file[0] +")\n"
+    hostname = ""
+    total_time_down_file[2] = str(datetime.now().strftime("%d.%m.%y %H:%M:%S"))
+    for keys in total_time_down_file[1]:
+        try:
+            hostname = keys.split('/')[2]
+        except IndexError:
+            hostname = str(keys).split(":")[0]
+        hours = int(total_time_down_file[1][keys] / 60 / 60)
+        min = int((total_time_down_file[1][keys] / 60 / 60 - hours) * 60)
+        out += hostname + " - " + str(hours) + " год. " + str(min) + " хв.\n"
+    await bot.send_message(message.chat.id, out)
 
 
 if __name__ == '__main__':
