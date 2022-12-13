@@ -80,6 +80,27 @@ times_errors = {  # СПИСОК САЙТІВ, В ЯКИХ ПОТРІБНО ПЕ
 
 
 
+nacp_sites_total_down_log = ["",
+    {
+    "https://interes.shtab.net/": 0,
+    "https://sanctions.nazk.gov.ua/": 0,
+    "https://vision.nazk.gov.ua/": 0,
+    "https://prosvita.nazk.gov.ua/": 0,
+    "https://antycorportal.nazk.gov.ua/": 0,
+    "https://study.nazk.gov.ua/": 0,
+    "https://wiki.nazk.gov.ua/": 0,
+    "https://nazk.gov.ua/uk/": 0,
+    "https://jira.nazk.gov.ua/": 0,
+    "https://cloud.nazk.gov.ua": 0,
+    "https://nacpworkspace.slack.com/": 0,
+    "91.142.175.11:53": 0,
+    "91.142.175.21:587": 0,
+    "https://app.slack.com/client/T0140MKGNUU/C013UGADGQ2": 0,
+    "http://ca.informjust.ua/": 0,
+    "http://czo.gov.ua": 0,
+    "https://corruptinfo.nazk.gov.ua/": 0,
+    "https://portal.nazk.gov.ua/": 0
+}]
 
 
 nacp_sites_ssl = [  # СПИСОК САЙТІВ, В ЯКИХ ПОТРІБНО ПЕРЕВІРЯТИ СЕРТИФІКАТ ССЛ

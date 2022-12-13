@@ -8,6 +8,7 @@ import csv
 from aiogram import Bot, Dispatcher, executor, types
 from datetime import datetime
 import config
+import json
 
 """import configparser
 
@@ -43,12 +44,29 @@ time_for_up = config.time_for_up
 time_for_ssl = config.time_for_ssl
 WhileLoopFlag = config.WhileLoopFlag
 WhileLoopFlag_nacp = config.WhileLoopFlag_nacp
+total_time_down_file = config.nacp_sites_total_down_log
 
 with open('logout.csv', 'a+', newline='', encoding='utf-8') as csvfile:
     fieldnames = ['Назва операції', 'Результат', 'Час виконання: ДД/ММ/РР Год/Хв/Сек']
     logger = csv.DictWriter(csvfile, fieldnames=fieldnames)
     logger.writerow({'Назва операції': "Запуск скрипта", 'Результат': " LOADED",
                      'Час виконання: ДД/ММ/РР Год/Хв/Сек': (datetime.now()).strftime("%d:%m:%y %H:%M:%S")})
+
+
+async def total_time_down(key, delta):
+    with open('total_down_time.json', 'r') as inpt:
+        out_write = json.load(inpt)
+        out_write[1][key] = delta.total_seconds()
+        with open('total_down_time.json', 'w') as out:
+            json.dump(out_write, out, indent=4)
+
+
+try:
+    total_time_down_file = open('сtotal_down_time.json', 'r')
+except FileNotFoundError:
+    total_time_down_file[0] = str(datetime.now().strftime("%d.%m.%y %H:%M:%S"))
+    total_time_down_file = open('total_down_time.json', 'w')
+    json.dump(config.nacp_sites_total_down_log, total_time_down_file, indent=4)
 
 
 async def logger_writer(first_par, sec_par):
@@ -160,6 +178,7 @@ async def up_nacp(message):
                         if nacp_sites[key] is False:
                             nacp_sites[key] = True
                             deltatime = datetime.now() - down_time[key]
+                            await total_time_down(key, deltatime)
                             await bot.send_message(message.chat.id, "RECOVERY: 🟢\n" + str(key) + "\n" +
                                                    "Up since: " + time_func().strftime("%d.%m.%y %H:%M:%S") + "\n" +
                                                    "Був вимкнений протягом "
@@ -212,6 +231,8 @@ async def up_nacp(message):
                                     if nacp_sites[key] is False:
                                         nacp_sites[key] = True
                                         deltatime = datetime.now() - down_time[key]
+                                        await total_time_down(key, deltatime)
+
                                         await bot.send_message(message.chat.id,
                                                                "RECOVERY: 🟢\n" + hostname + "\nUp since: "
                                                                + time_func().strftime("%d.%m.%y %H:%M:%S") + "\n" +
