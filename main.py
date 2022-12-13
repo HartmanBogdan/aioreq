@@ -176,7 +176,8 @@ async def up_nacp(message):
                         if nacp_sites[key] is False:
                             nacp_sites[key] = True
                             deltatime = datetime.now() - down_time[key]
-                            await total_time_down(key, deltatime)
+                            new_delta = deltatime.total_seconds() + total_time_down_file[1][key]
+                            await total_time_down(key, new_delta)
                             await bot.send_message(message.chat.id, "RECOVERY: 🟢\n" + str(key) + "\n" +
                                                    "Up since: " + time_func().strftime("%d.%m.%y %H:%M:%S") + "\n" +
                                                    "Був вимкнений протягом "
@@ -194,7 +195,7 @@ async def up_nacp(message):
                                 await bot.send_message(message.chat.id, "ALERT: DOWN 🛑\n" +
                                                        str(key) + "\nDown since: " +
                                                        str(down_time[key].strftime("%d.%m.%y %H:%M:%S"))
-                                                       + "\nReason: нема відповідді від сервера")
+                                                       + "\nReason: нема відповіді від сервера")
                                 await logger_writer(first_par=str(key),
                                                     sec_par="ALERT: DOWN 🛑 Down since:  "
                                                             + str(down_time[key].strftime("%d.%m.%y %H:%M:%S   ")))
@@ -229,7 +230,8 @@ async def up_nacp(message):
                                     if nacp_sites[key] is False:
                                         nacp_sites[key] = True
                                         deltatime = datetime.now() - down_time[key]
-                                        await total_time_down(key, deltatime)
+                                        new_delta = deltatime.total_seconds() + total_time_down_file[1][key]
+                                        await total_time_down(key, new_delta)
 
                                         await bot.send_message(message.chat.id,
                                                                "RECOVERY: 🟢\n" + hostname + "\nUp since: "
