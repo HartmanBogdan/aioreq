@@ -364,7 +364,6 @@ async def help(message):
 @dp.message_handler(commands=["total_down_time"])
 async def total_down_time(message):
     out = "Загальний час відсутності ресурсів(від: " + total_time_down_file[0] +")\n"
-    hostname = ""
     total_time_down_file[2] = str(datetime.now().strftime("%d.%m.%y %H:%M:%S"))
     for keys in total_time_down_file[1]:
         try:
