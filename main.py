@@ -1,5 +1,3 @@
-# перевірка тср перевірка ссл логи, починив дельту в логах ап тайм 28.11.22 17:47
-
 import asyncio
 import logging
 import aiohttp
