@@ -28,6 +28,8 @@ ssl_check_nacp - почати моніторинг ssl
 stop_ssl_check_nacp - зупинити моніторинг ssl
 stop_up_nacp - зупинити моніторинг сайтів
 help - пояснення для таймерів
+td_time - заг. час недост. рес.
+
 """
 
 # Initialize bot and dispatcher
@@ -44,7 +46,8 @@ time_for_up = config.time_for_up
 time_for_ssl = config.time_for_ssl
 WhileLoopFlag = config.WhileLoopFlag
 WhileLoopFlag_nacp = config.WhileLoopFlag_nacp
-total_time_down_file = config.nacp_sites_total_down_log
+total_time_down_log = config.nacp_sites_total_down_log
+three_times_errors = config.times_errors
 
 with open('logout.csv', 'a+', newline='', encoding='utf-8') as csvfile:
     fieldnames = ['Назва операції', 'Результат', 'Час виконання: ДД/ММ/РР Год/Хв/Сек']
@@ -53,20 +56,22 @@ with open('logout.csv', 'a+', newline='', encoding='utf-8') as csvfile:
                      'Час виконання: ДД/ММ/РР Год/Хв/Сек': (datetime.now()).strftime("%d:%m:%y %H:%M:%S")})
 
 
-async def total_time_down(key, delta):
+async def total_time_down_func(key, delta):
     with open('total_down_time.json', 'r') as inpt:
         out_write = json.load(inpt)
-        out_write[1][key] = delta.total_seconds()
+        out_write[1][key] += delta #.total_seconds()
+        inpt.close()
         with open('total_down_time.json', 'w') as out:
             json.dump(out_write, out, indent=4)
 
 
 try:
-    total_time_down_file = open('сtotal_down_time.json', 'r')
+    inpt = open('total_down_time.json', 'r')
+    total_time_down_file = json.load(inpt)
 except FileNotFoundError:
-    total_time_down_file[0] = str(datetime.now().strftime("%d.%m.%y %H:%M:%S"))
+    total_time_down_log[0] = str(datetime.now().strftime("%d.%m.%y %H:%M:%S"))
     total_time_down_file = open('total_down_time.json', 'w')
-    json.dump(config.nacp_sites_total_down_log, total_time_down_file, indent=4)
+    json.dump(total_time_down_log, total_time_down_file, indent=4)
 
 
 async def logger_writer(first_par, sec_par):
@@ -78,7 +83,7 @@ async def logger_writer(first_par, sec_par):
 
 
 def time_func():
-    print(type((datetime.now()).strftime("%d.%m.%y %H:%M:%S")))
+    #print(type((datetime.now()).strftime("%d.%m.%y %H:%M:%S")))
     return datetime.now()
 
 
@@ -151,7 +156,6 @@ async def up_nacp(message):
     global nacp_sites
     global time_for_up
     global down_time
-    three_times_errors = config.times_errors
     await bot.send_message(message.chat.id,
                            "Запускаємо перевірку UP_SITE (1 раз на " + str(int(time_for_up) / 60) + " хв)")
     await logger_writer(first_par="Запускаємо перевірку UP_SITE ",
@@ -164,20 +168,20 @@ async def up_nacp(message):
 
         try:
             for key in nacp_sites:
-                print(key)
+                #print(key)
                 try:
                     hostname = key.split('/')[2]
                 except IndexError:
                     HOST = str(key).split(":")
-                    print(HOST)
+                    #print(HOST)
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     result = sock.connect_ex((HOST[0], int(HOST[1])))
                     if result == 0:
                         if nacp_sites[key] is False:
                             nacp_sites[key] = True
                             deltatime = datetime.now() - down_time[key]
-                            new_delta = deltatime.total_seconds() + total_time_down_file[1][key]
-                            await total_time_down(key, new_delta)
+                            new_delta = deltatime.total_seconds() + total_time_down_log[1][key]
+                            await total_time_down_func(key, new_delta)
                             await bot.send_message(message.chat.id, "RECOVERY: 🟢\n" + str(key) + "\n" +
                                                    "Up since: " + time_func().strftime("%d.%m.%y %H:%M:%S") + "\n" +
                                                    "Був вимкнений протягом "
@@ -185,7 +189,6 @@ async def up_nacp(message):
                             await logger_writer(first_par=str(key),
                                                 sec_par="RECOVERY: 🟢 Був вимкнений протягом: "
                                                         + strfdelta(deltatime))
-                        print("Port is open")
                     else:
                         three_times_errors[key] += 1
                         if nacp_sites[key] is True:
@@ -194,13 +197,14 @@ async def up_nacp(message):
                                 nacp_sites[key] = False
                                 await bot.send_message(message.chat.id, "ALERT: DOWN 🛑\n" +
                                                        str(key) + "\nDown since: " +
-                                                       str(down_time[key].strftime("%d.%m.%y %H:%M:%S"))
-                                                       + "\nReason: нема відповіді від сервера")
+                                                       str(down_time[key].strftime("%d.%m.%y %H:%M:%S")) + "\n" +
+                                                       str(three_times_errors[key])
+                                                       + " - невдалих спроб з'єднання підряд.\nReason: нема відповіді від сервера")
                                 await logger_writer(first_par=str(key),
                                                     sec_par="ALERT: DOWN 🛑 Down since:  "
                                                             + str(down_time[key].strftime("%d.%m.%y %H:%M:%S   ")))
                                 three_times_errors[key] = 0
-                        print("Port is not open")
+                        #print("Port is not open")
                     sock.close()
                     continue
 
@@ -208,30 +212,35 @@ async def up_nacp(message):
                     async with aiohttp.ClientSession() as session:
 
                         try:
-                            #TIMEOUT - 10 SEС
+                            # TIMEOUT - 10 SEС
                             async with session.get(url=key, timeout=10) as response:
                                 print(str(response.status) + " " + hostname)
                                 if response.status != 200 and response.status != 401:
                                     output += (hostname + "  status_code: " + str(response.status) + " FAIL\n")
                                     if nacp_sites[key] is True:
-                                        nacp_sites[key] = False
                                         down_time[key] = time_func()
-                                        await bot.send_message(message.chat.id, "ALERT: DOWN 🛑\n" +
-                                                               hostname + "\nDown since: " +
-                                                               str(down_time[key].strftime("%d.%m.%y %H:%M:%S"))
-                                                               + "\nReason: з'єднання з сервером встановлено, "
-                                                                 "але отримано error.\n Помилка: " +
-                                                               (str(response.status)))
-                                        await logger_writer(first_par=hostname,
-                                                            sec_par="ALERT: DOWN 🛑 Down since:  "
-                                                            + str(down_time[key].strftime("%d.%m.%y %H:%M:%S   ")))
+                                        nacp_sites[key] = False
+                                        if three_times_errors[key] == config.n_times_clause:
+                                            await bot.send_message(message.chat.id, "ALERT: DOWN 🛑\n" +
+                                                                   hostname + " " + str(three_times_errors[key])
+                                                                   + " - невдалих спроб з'єднання підряд.\nDown since: "
+                                                                   + str(down_time[key].strftime("%d.%m.%y %H:%M:%S"))
+                                                                   + "\nReason: з'єднання з сервером встановлено, "
+                                                                     "але отримано error.\nПомилка: " +
+                                                                   (str(response.status)))
+                                            await logger_writer(first_par=hostname,
+                                                                sec_par="ALERT: DOWN 🛑 Down since:  "
+                                                                        + str(
+                                                                    down_time[key].strftime("%d.%m.%y %H:%M:%S   ")))
+                                            three_times_errors[key] = 0
 
                                 elif response.status == 200 or response.status == 401:
                                     if nacp_sites[key] is False:
                                         nacp_sites[key] = True
                                         deltatime = datetime.now() - down_time[key]
-                                        new_delta = deltatime.total_seconds() + total_time_down_file[1][key]
-                                        await total_time_down(key, new_delta)
+                                        new_delta = deltatime.total_seconds() + total_time_down_log[1][key]
+                                        print(new_delta,  new_delta, new_delta, new_delta, new_delta)
+                                        await total_time_down_func(key, new_delta)
 
                                         await bot.send_message(message.chat.id,
                                                                "RECOVERY: 🟢\n" + hostname + "\nUp since: "
@@ -241,7 +250,6 @@ async def up_nacp(message):
                                         await logger_writer(first_par=hostname,
                                                             sec_par="RECOVERY: 🟢 Був вимкнений протягом: "
                                                                     + strfdelta(deltatime))
-
                         except asyncio.TimeoutError:
                             three_times_errors[key] += 1
                             if nacp_sites[key] is True:
@@ -250,8 +258,8 @@ async def up_nacp(message):
                                     nacp_sites[key] = False
                                     await bot.send_message(message.chat.id,
                                                            "ALERT: DOWN 🛑\n" + hostname +
-                                                           "\nReason: Connection Timeout. " + str(three_times_errors[key])
-                                                           +" невдалі спроби з'єднання підряд.\nDown since: "
+                                                        "\nReason: Connection Timeout. " + str(three_times_errors[key])
+                                                           + " - невдалих спроб з'єднання підряд.\nDown since: "
                                                            + str(down_time[key].strftime("%d.%m.%y %H:%M:%S")))
                                     await logger_writer(first_par=hostname,
                                                         sec_par="ALERT: DOWN 🛑 Connection Timeout. Down since: "
@@ -271,18 +279,18 @@ async def up_nacp(message):
                             await bot.send_message(message.chat.id,
                                                    "ALERT: DOWN 🛑\n" + hostname +
                                                    "\nReason: OSError. " + str(three_times_errors[key])
-                                                           +" невдалі спроби з'єднання підряд. \nDown since: " + str(
+                                                   + " - невдалих спроб з'єднання підряд. \nDown since: " + str(
                                                        down_time[key].strftime("%d.%m.%y %H:%M:%S")) +
                                                    "\n(нема відповіді від сервера)")
-                            await logger_writer(first_par=hostname, sec_par="ALERT: DOWN 🛑 OSError. Down since: " + str(
-                                down_time[key].strftime("%d.%m.%y %H:%M:%S   ")))
+                            await logger_writer(first_par=hostname,
+                                                sec_par="ALERT: DOWN 🛑 OSError. Down since: " + str(
+                                                    down_time[key].strftime("%d.%m.%y %H:%M:%S   ")))
                             three_times_errors[key] = 0
 
-
-                            print(str(response.status) + "RESPONSE OSE EROOR STATUS")
+                            print(key + "   RESPONSE OSE EROOR STATUS")
 
         except TypeError:
-            print(" TypeError")
+            print(TypeError)
         await asyncio.sleep(time_for_up)
     print(nacp_sites)
     await bot.send_message(message.chat.id, text="Перевірка UP_SITE зупинена")
@@ -363,10 +371,10 @@ async def help(message):
                            )
     await logger_writer(first_par="help повідомлення в чат", sec_par=" функція help")
 
-@dp.message_handler(commands=["total_down_time"])
-async def total_down_time(message):
-    out = "Загальний час відсутності ресурсів(від: " + total_time_down_file[0] +")\n"
-    total_time_down_file[2] = str(datetime.now().strftime("%d.%m.%y %H:%M:%S"))
+
+@dp.message_handler(commands=["td_time"])
+async def td_time(message):
+    out = "Загальний час відсутності ресурсів(з: " + total_time_down_file[0] + " по " + time_func().strftime("%d.%m.%y %H:%M:%S") + " )\n"
     for keys in total_time_down_file[1]:
         try:
             hostname = keys.split('/')[2]
@@ -374,7 +382,8 @@ async def total_down_time(message):
             hostname = str(keys).split(":")[0]
         hours = int(total_time_down_file[1][keys] / 60 / 60)
         min = int((total_time_down_file[1][keys] / 60 / 60 - hours) * 60)
-        out += hostname + " - " + str(hours) + " год. " + str(min) + " хв.\n"
+        sec = int(total_time_down_file[1][keys] % 60)
+        out += hostname + " - " + str(hours) + " год. " + str(min) + " хв. " + str(sec) + " сек.\n"
     await bot.send_message(message.chat.id, out)
 
 

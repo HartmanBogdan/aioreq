@@ -1,14 +1,15 @@
 """
-set_time_up - таймер для мон.сайтів, вказувати в ХВИЛИНАХ. див. help
-set_time_ssl - таймер для SSL сертф, вказувати в ХВИЛИНАХ.  див. help
+set_time_up - таймер для мон.сайтів, див. help
+set_time_ssl - таймер для SSL сертф. див. help
 up_nacp - почати моніторинг сайтів
 ssl_check_nacp - почати моніторинг ssl
 stop_ssl_check_nacp - зупинити моніторинг ssl
 stop_up_nacp - зупинити моніторинг сайтів
 help - пояснення для таймерів
-"""
+td_time - заг. час недост. рес.
 
-API_TOKEN = '5518084108:AAGNt_MEkbPtkvL8GJ_4c1RRgF7DGuVyAE8'  # ссилка на бот ТОКЕН ПО ЯКОМУ СКРИПТ КОНЕКТИТЬСЯ ДО
+"""
+API_TOKEN = '5521564357:AAEyEl6zrML9PGMY-vunQesbEU0d4ZWdw1Y'  # ссилка на бот ТОКЕН ПО ЯКОМУ СКРИПТ КОНЕКТИТЬСЯ ДО
 # КОНКРЕТНОГО БОТА В ТЕЛЕГРАМІ. Узнать токен можна в телеграмі в https://t.me/BotFather (бот прив'язується до
 # конкретного акаунта( номера телефону) 5521564357:AAEyEl6zrML9PGMY-vunQesbEU0d4ZWdw1Y - @check_response_bot -
 # основний бот. 5518084108:AAGNt_MEkbPtkvL8GJ_4c1RRgF7DGuVyAE8 - @nazk_up_bot - тестовий бот.
@@ -42,11 +43,8 @@ nacp_sites = {  # СПИСОК САЙТІВ, В ЯКИХ ПОТРІБНО ПЕР
     'https://app.slack.com/client/T0140MKGNUU/C013UGADGQ2': True,
     'http://ca.informjust.ua/': True,
     'http://czo.gov.ua': True,
-    # 'https://acskidd.gov.ua/': True,  -- з закордону - не моніториться, тільки з України
     'https://corruptinfo.nazk.gov.ua/': True,
-    'https://portal.nazk.gov.ua/': True,
-    'http://localhost:8000/polls/':True
-
+    'https://portal.nazk.gov.ua/': True
 }
 
 
@@ -55,7 +53,6 @@ nacp_sites = {  # СПИСОК САЙТІВ, В ЯКИХ ПОТРІБНО ПЕР
 times_errors = {  # СПИСОК САЙТІВ, В ЯКИХ ПОТРІБНО ПЕРЕВІРЯТИ ДОСТУПНІСТЬ
     'https://interes.shtab.net/': 0,  # флаг 0 - по дефолту - кількість невладих підключень, оскільки часто
     # викидає помилку по таймауту. якщо 3/3 - таймаут ерор - bot.message.send в чат
-
     'https://sanctions.nazk.gov.ua/': 0,
     'https://vision.nazk.gov.ua/': 0,
     'https://prosvita.nazk.gov.ua/': 0,
@@ -71,11 +68,8 @@ times_errors = {  # СПИСОК САЙТІВ, В ЯКИХ ПОТРІБНО ПЕ
     'https://app.slack.com/client/T0140MKGNUU/C013UGADGQ2': 0,
     'http://ca.informjust.ua/': 0,
     'http://czo.gov.ua': 0,
-    # 'https://acskidd.gov.ua/': 0,  -- з закордону - не моніториться, тільки з України
     'https://corruptinfo.nazk.gov.ua/': 0,
-    'https://portal.nazk.gov.ua/': 0,
-    'http://localhost:8000/polls/':0
-
+    'https://portal.nazk.gov.ua/': 0
 }
 
 
@@ -100,7 +94,7 @@ nacp_sites_total_down_log = ["",
     "http://czo.gov.ua": 0,
     "https://corruptinfo.nazk.gov.ua/": 0,
     "https://portal.nazk.gov.ua/": 0
-}]
+    }]
 
 
 nacp_sites_ssl = [  # СПИСОК САЙТІВ, В ЯКИХ ПОТРІБНО ПЕРЕВІРЯТИ СЕРТИФІКАТ ССЛ
