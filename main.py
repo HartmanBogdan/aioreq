@@ -41,6 +41,7 @@ WhileLoopFlag = config.WhileLoopFlag
 WhileLoopFlag_nacp = config.WhileLoopFlag_nacp
 total_time_down_log = config.nacp_sites_total_down_log
 three_times_errors = config.times_errors
+timeout = config.try_timeout
 
 with open('logout.csv', 'a+', newline='', encoding='utf-8') as csvfile:
     fieldnames = ['Назва операції', 'Результат', 'Час виконання: ДД/ММ/РР Год/Хв/Сек']
@@ -169,7 +170,6 @@ async def up_nacp(message):
                     hostname = key.split('/')[2]
                 except IndexError:
                     HOST = str(key).split(":")
-                    #print(HOST)
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     result = sock.connect_ex((HOST[0], int(HOST[1])))
                     if result == 0:
@@ -200,7 +200,7 @@ async def up_nacp(message):
                                                     sec_par="ALERT: DOWN 🛑 Down since:  "
                                                             + str(down_time[key].strftime("%d.%m.%y %H:%M:%S   ")))
                                 three_times_errors[key] = 0
-                        #print("Port is not open")
+                        print(str(HOST) + " Port is not open")
                     sock.close()
                     continue
 
@@ -209,7 +209,7 @@ async def up_nacp(message):
 
                         try:
                             # TIMEOUT - 10 SEС
-                            async with session.get(url=key, timeout=10) as response:
+                            async with session.get(url=key, timeout=timeout) as response:
                                 print(str(response.status) + " " + hostname)
                                 if response.status != 200 and response.status != 401:
                                     output += (hostname + "  status_code: " + str(response.status) + " FAIL\n")
@@ -218,7 +218,7 @@ async def up_nacp(message):
                                         nacp_sites[key] = False
                                         if three_times_errors[key] == config.n_times_clause:
                                             await bot.send_message(message.chat.id, "ALERT: DOWN 🛑\n" +
-                                                                   hostname + " " + str(three_times_errors[key])
+                                                                   hostname + " \n" + str(three_times_errors[key])
                                                                    + " - невдалих спроб з'єднання підряд.\nDown since: "
                                                                    + str(down_time[key].strftime("%d.%m.%y %H:%M:%S"))
                                                                    + "\nReason: з'єднання з сервером встановлено, "
@@ -274,7 +274,7 @@ async def up_nacp(message):
                             nacp_sites[key] = False
                             await bot.send_message(message.chat.id,
                                                    "ALERT: DOWN 🛑\n" + hostname +
-                                                   "\nReason: OSError. " + str(three_times_errors[key])
+                                                   "\nReason: OSError. \n" + str(three_times_errors[key])
                                                    + " - невдалих спроб з'єднання підряд. \nDown since: " + str(
                                                        down_time[key].strftime("%d.%m.%y %H:%M:%S")) +
                                                    "\n(нема відповіді від сервера)")
@@ -318,7 +318,7 @@ async def ssl_check_nacp(message):
                             context = ssl.create_default_context()
                             conn = context.wrap_socket(socket.socket(socket.AF_INET), server_hostname=hostname, )
                             # TIMEOUT WAS 3.0
-                            conn.settimeout(3.0)
+                            conn.settimeout(timeout)
                             conn.connect((hostname, 443))
                             ssl_info = conn.getpeercert()
                             Exp_ON = datetime.strptime(ssl_info['notAfter'], ssl_date_fmt)
@@ -370,15 +370,18 @@ async def help(message):
 
 @dp.message_handler(commands=["td_time"])
 async def td_time(message):
-    out = "Загальний час відсутності доступу до ресурсів\n\n(" + total_time_down_file[0] + " - " + time_func().strftime("%d.%m.%y %H:%M:%S") + ")\n\n"
-    for keys in total_time_down_file[1]:
+    inpt = open('total_down_time.json', 'r')
+    totalTimeDownFile = json.load(inpt)
+    inpt.close()
+    out = "Загальний час відсутності доступу до ресурсів\n\n(" + totalTimeDownFile[0] + " - " + time_func().strftime("%d.%m.%y %H:%M:%S") + ")\n\n"
+    for keys in totalTimeDownFile[1]:
         try:
             hostname = keys.split('/')[2]
         except IndexError:
             hostname = str(keys).split(":")[0]
-        hours = int(total_time_down_file[1][keys] / 60 / 60)
-        min = int((total_time_down_file[1][keys] / 60 / 60 - hours) * 60)
-        sec = int(total_time_down_file[1][keys] % 60)
+        hours = int(totalTimeDownFile[1][keys] / 60 / 60)
+        min = int((totalTimeDownFile[1][keys] / 60 / 60 - hours) * 60)
+        sec = int(totalTimeDownFile[1][keys] % 60)
         out += hostname + " - " + str(hours) + " год. " + str(min) + " хв. " + str(sec) + " сек.\n"
     await bot.send_message(message.chat.id, out)
 
