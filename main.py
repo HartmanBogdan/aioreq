@@ -10,12 +10,6 @@ from datetime import datetime
 import config
 import json
 
-"""import configparser
-
-
-config = configparser.ConfigParser()
-config.read('configfile.ini')"""
-
 API_TOKEN = config.API_TOKEN
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -29,7 +23,6 @@ stop_ssl_check_nacp - зупинити моніторинг ssl
 stop_up_nacp - зупинити моніторинг сайтів
 help - пояснення для таймерів
 td_time - заг. час недост. рес.
-
 """
 
 # Initialize bot and dispatcher
@@ -59,19 +52,22 @@ with open('logout.csv', 'a+', newline='', encoding='utf-8') as csvfile:
 async def total_time_down_func(key, delta):
     with open('total_down_time.json', 'r') as inpt:
         out_write = json.load(inpt)
-        out_write[1][key] += delta #.total_seconds()
+        out_write[1][key] += delta
         inpt.close()
         with open('total_down_time.json', 'w') as out:
             json.dump(out_write, out, indent=4)
 
-
 try:
     inpt = open('total_down_time.json', 'r')
     total_time_down_file = json.load(inpt)
+    inpt.close()
 except FileNotFoundError:
     total_time_down_log[0] = str(datetime.now().strftime("%d.%m.%y %H:%M:%S"))
     total_time_down_file = open('total_down_time.json', 'w')
     json.dump(total_time_down_log, total_time_down_file, indent=4)
+    total_time_down_file.close()
+    total_time_down_file = open('total_down_time.json', 'r')
+    total_time_down_file = json.load(total_time_down_file)
 
 
 async def logger_writer(first_par, sec_par):
@@ -374,7 +370,7 @@ async def help(message):
 
 @dp.message_handler(commands=["td_time"])
 async def td_time(message):
-    out = "Загальний час відсутності ресурсів(з: " + total_time_down_file[0] + " по " + time_func().strftime("%d.%m.%y %H:%M:%S") + " )\n"
+    out = "Загальний час відсутності доступу до ресурсів\n\n(" + total_time_down_file[0] + " - " + time_func().strftime("%d.%m.%y %H:%M:%S") + ")\n\n"
     for keys in total_time_down_file[1]:
         try:
             hostname = keys.split('/')[2]
