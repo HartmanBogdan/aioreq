@@ -9,7 +9,7 @@ help - пояснення для таймерів
 td_time - заг. час недост. рес.
 
 """
-API_TOKEN = '5518084108:AAGNt_MEkbPtkvL8GJ_4c1RRgF7DGuVyAE8'  # ссилка на бот ТОКЕН ПО ЯКОМУ СКРИПТ КОНЕКТИТЬСЯ ДО
+API_TOKEN = '5521564357:AAEyEl6zrML9PGMY-vunQesbEU0d4ZWdw1Y'  # ссилка на бот ТОКЕН ПО ЯКОМУ СКРИПТ КОНЕКТИТЬСЯ ДО
 # КОНКРЕТНОГО БОТА В ТЕЛЕГРАМІ. Узнать токен можна в телеграмі в https://t.me/BotFather (бот прив'язується до
 # конкретного акаунта( номера телефону) 5521564357:AAEyEl6zrML9PGMY-vunQesbEU0d4ZWdw1Y - @check_response_bot -
 # основний бот. 5518084108:AAGNt_MEkbPtkvL8GJ_4c1RRgF7DGuVyAE8 - @nazk_up_bot - тестовий бот.
