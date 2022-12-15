@@ -9,6 +9,9 @@ help - пояснення для таймерів
 td_time - заг. час недост. рес.
 
 """
+
+# якщо потрібно додати новий ресурс до перевірки - його потрібно
+# додавати в (nacp_sites, times_errors,  nacp_sites_total_down_log)
 API_TOKEN = '5521564357:AAEyEl6zrML9PGMY-vunQesbEU0d4ZWdw1Y'  # ссилка на бот ТОКЕН ПО ЯКОМУ СКРИПТ КОНЕКТИТЬСЯ ДО
 # КОНКРЕТНОГО БОТА В ТЕЛЕГРАМІ. Узнать токен можна в телеграмі в https://t.me/BotFather (бот прив'язується до
 # конкретного акаунта( номера телефону) 5521564357:AAEyEl6zrML9PGMY-vunQesbEU0d4ZWdw1Y - @check_response_bot -
